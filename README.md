@@ -12,3 +12,4 @@
 - 서버에서 accept 하고 연결대기 -> client socket 생성 -> clinet connect -> 서버에서 소켓 생성( thread로 생성할수도 있고, 그냥도 할수 ㅣㅇㅆ음)
 - thread로 하는경우 thread 상속받아서 rub 구현(patten quiz4)
 - 그냥 하면(patten quiz 3)
+https://victorydntmd.tistory.com/135
