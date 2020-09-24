@@ -1,0 +1,189 @@
+package com.lgcns.test;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+
+public class RunManagerM {
+
+	//버스 정보
+	static List<BusLocation> busLocList = new ArrayList<BusLocation>();
+	//정류장 정보
+	static List<BusStation> stationList = new ArrayList<BusStation>();
+	
+	
+	public static void main(String[] args) throws Exception {
+		
+
+         InetSocketAddress[] ipPoints = { new InetSocketAddress("127.0.0.1", 9870), new InetSocketAddress("127.0.0.1", 9876) };
+
+         ListenPorts lp = new ListenPorts(ipPoints);
+
+         lp.beginListen();
+		
+		
+	}
+
+}
+
+class ListenPorts
+
+{
+
+	ServerSocket[] serversocket;
+
+    InetSocketAddress[] ipPoints;
+
+    ListenPorts(InetSocketAddress[] ipPoints)
+
+    {
+
+        this.ipPoints = ipPoints;
+
+        serversocket = new ServerSocket[ipPoints.length];
+
+    }
+
+
+
+    public void beginListen()
+
+    {
+
+        for (int i = 0; i < ipPoints.length; i++)
+
+        {
+        	
+        	try {
+        		
+        		//netstat -ano | find "9876"
+        		//taskkill /f /pid 20900
+        		serversocket[i] = new ServerSocket();
+				serversocket[i].bind(ipPoints[i]);
+				MultiSocket ms = new MultiSocket(serversocket[i]);
+	        	ms.start();
+	        	
+	        	
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+        }
+
+
+    }
+
+
+}
+
+
+class MultiSocket extends Thread {
+	
+	private ServerSocket serversocket;
+
+	public MultiSocket(ServerSocket serversocket) {
+		this.serversocket = serversocket;
+	}
+
+	@Override
+	public void run() {
+		System.out.println("String thread");
+		
+		while(true) {
+			
+           
+			try {
+				
+				Socket socket = serversocket.accept();
+				ProcessSocket receiver = new ProcessSocket(socket);
+				receiver.start(); // 기본 Thread 방식
+					
+		        
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+           
+		
+		}
+		
+		
+		
+	}
+	
+
+
+}
+
+
+
+
+class ProcessSocket extends Thread {
+	
+	private Socket socket;
+
+	public ProcessSocket(Socket socket) {
+		this.socket = socket;
+	}
+
+	@Override
+	public void run() {
+		
+		try {
+			System.out.println("Thread accepted " + socket.getLocalPort());
+		
+			BufferedReader clientInput;
+		
+			clientInput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		
+			String busName = clientInput.readLine();
+			System.out.println("Client Connected : " + busName);
+
+
+			if(busName.equals("MOBILE")) {
+				
+				String line = null;
+				String printCommand = clientInput.readLine();
+				System.out.println(printCommand);
+				String passengerInfo = clientInput.readLine();
+				System.out.println(passengerInfo);
+				
+				PrintWriter mobileOutput = new PrintWriter(new OutputStreamWriter(socket.getOutputStream()),true);
+				mobileOutput.print("11:05:54");
+				mobileOutput.close();
+				
+			}
+		
+			
+			System.out.println("Thread end");
+		
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	
+}
